@@ -1,20 +1,22 @@
-/* This is my first ever foray in GUIs.
+/* This is my first serious foray in GUIs.
  * I have put comments explaining almost 
  * everything to help me (and others if curious)
  * to learn and fully understand the code!
  * */
 
-
 package finalproject;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 
 public class GUI implements ActionListener{
@@ -25,6 +27,8 @@ public class GUI implements ActionListener{
 	private JPanel panel;
 	private JButton searchButton;
 	private JLabel label;
+	private JTextField searchField;
+	private static SearchEngine searchEngine;
 	
 	public GUI() {
 		//initialize frame + panel
@@ -34,6 +38,10 @@ public class GUI implements ActionListener{
 		panel.setBorder(BorderFactory.createEmptyBorder(300,600,300,600));
 		panel.setLayout(new GridLayout(0, 1));
 		
+		//SEARCH BAR:
+		searchField = new JTextField("Enter your search here");
+		panel.add(searchField);
+		
 		//BUTTON:
 		searchButton = new JButton("Search");
 		searchButton.addActionListener(this);
@@ -41,11 +49,6 @@ public class GUI implements ActionListener{
 		searchButton.setLocation(10,10);
 		//add to panel
 		panel.add(searchButton);
-		
-		//LABEL:
-		label = new JLabel("Number of clicks: 0");
-		//add to panel
-		panel.add(label);
 
 		//add panel to frame
 		frame.add(panel, BorderLayout.CENTER);
@@ -65,7 +68,7 @@ public class GUI implements ActionListener{
 	public static void main(String[] args) {
 		new GUI();
 		try {
-			SearchEngine searchEngine = new SearchEngine("test.xml");
+			searchEngine = new SearchEngine("test.xml");
 			searchEngine.crawlAndIndex("www.cs.mcgill.ca");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -73,7 +76,36 @@ public class GUI implements ActionListener{
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		count++;
-		label.setText("Number of clicks: " + count);
+		String userSearchText = searchField.getText();
+		ArrayList<String> results = searchEngine.getResults(userSearchText);
+		//check results working
+		System.out.println(results);
+		//get rid of everything (in order to get rid of old results)
+		panel.removeAll();
+		//put basic elements back
+		panel.add(searchField);
+		panel.add(searchButton);
+		
+		//make ArrayList of buttons so i can iterate through them and operate upon them
+		ArrayList<JButton> buttons = new ArrayList<>();
+		
+		//create button for each element
+		for(String url: results) {
+			buttons.add(new JButton(url));
+			panel.add(new JButton(url));
+		}
+		
+		if(buttons.isEmpty()) {
+			JLabel noResults = new JLabel("There were no search results, please search again.");
+			noResults.setPreferredSize(new Dimension(150, 30));
+			panel.add(noResults);
+		}
+		
+		//check ArrayList of buttons working
+		System.out.println(buttons.toString());
+		
+		//update the GUI
+		panel.revalidate();
+		panel.repaint();
 	}
 }
